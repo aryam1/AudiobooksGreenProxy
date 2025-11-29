@@ -35,5 +35,5 @@ services:
       # Files must be located in the /app/data folder of the application. In other words, in
       # the container's volume
       # - SSL_CERT_FILE=/app/data/fullchain.pem
-      # - SSL_PRIVATE_KEY_FILE=/app/data/priv.pem
+      # - SSL_PRIVATE_KEY_FILE=/app/data/privkey.pem
     restart: unless-stopped
