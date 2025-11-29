@@ -1,6 +1,7 @@
 import asyncio
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Header, Query
+from typing import Optional
 import os
 import logging
 from telethon import TelegramClient, events
@@ -37,8 +38,7 @@ show_swagger_str = os.getenv("SHOW_SWAGGER", default="0")
 if show_swagger_str.lower() in ["true", "1", "yes"]:
     app = FastAPI()
 else:
-    app = FastAPI(docs_url=None, redoc_url=None)
-
+    app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 
 ###############################################################################
 #
@@ -54,29 +54,54 @@ import audiobookshelf.redused_api as abs
 
 
 # *****************************************************************************
-@app.get("/audiobookshelf/login")
-async def audiobookshelf_login(server: str, login: str, password: str):
-    return await abs.get_token(server, login, password)
+@app.post("/audiobookshelf/login")
+async def audiobookshelf_login(data: abs.AudiobookshelfAithorizationData):
+    return await abs.login(data.server, data.login, data.password)
 
 
 # *****************************************************************************
 @app.get("/audiobookshelf/playlists")
-async def audiobookshelf_playlists(server: str, token: str):
-    return await abs.get_playlists(server, token)
+async def proxy_audiobookshelf_playlists(
+    server: str = Query(
+        "", alias="server", description="URL your Audiobookshelf server."
+    ),
+    token: str = Header(
+        None,
+        alias="Authorization",
+        description="Header Authorization: Bearer your_token_here",
+    ),
+):
+    return await abs.get_playlists(server, abs.sanitaze_token(token))
 
 
 # *****************************************************************************
 @app.get("/audiobookshelf/playlist")
-async def audiobookshelf_playlist(server: str, playlist_id: str, token: str):
-    return await abs.get_playlist(server, playlist_id, token)
+async def audiobookshelf_playlist(
+    server: str,
+    playlist_id: str,
+    token: Optional[str] = Header(
+        None,
+        alias="Authorization",
+        description="Header Authorization: Bearer your_token_here",
+    ),
+):
+    return await abs.get_playlist(server, playlist_id, abs.sanitaze_token(token))
 
 
 # *****************************************************************************
 @app.get("/audiobookshelf/book")
 async def audiobookshelf_book(
-    server: str, book_id: str, token: str, skip: int = 0, limit: int = 0
+    server: str,
+    book_id: str,
+    skip: int = 0,
+    limit: int = 0,
+    token: Optional[str] = Header(
+        None,
+        alias="Authorization",
+        description="Header Authorization: Bearer your_token_here",
+    ),
 ):
-    return await abs.get_book(server, book_id, token, skip, limit)
+    return await abs.get_book(server, book_id, abs.sanitaze_token(token), skip, limit)
 
 
 # *****************************************************************************

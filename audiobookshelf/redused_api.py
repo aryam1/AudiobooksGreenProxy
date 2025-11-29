@@ -18,6 +18,12 @@ class AudiobookshelfProgress(BaseModel):
     items: list[AudiobookshelfProgressItem]
 
 
+class AudiobookshelfAithorizationData(BaseModel):
+    server: str
+    login: str
+    password: str
+
+
 def sanitze_server_name(server):
     result = server
     if not result.startswith("https://"):
@@ -25,6 +31,10 @@ def sanitze_server_name(server):
     if "/" in result[-1]:
         result = result[:-1]
     return result
+
+
+def sanitaze_token(token):
+    return token.replace("Bearer ", "").strip()
 
 
 def get_book_info(resp_book):
@@ -165,7 +175,7 @@ async def get_book(server, book_id, token, skip=0, limit=0):
     return result
 
 
-async def get_token(server, login, password):
+async def login(server, login, password):
     result = {}
     url = f"{sanitze_server_name(server)}/login"
     json_data = {"username": login, "password": password}
