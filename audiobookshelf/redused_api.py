@@ -4,6 +4,7 @@ import tempfile
 from fastapi.responses import FileResponse
 from fastapi import HTTPException
 from pydantic import BaseModel
+import os
 
 
 class AudiobookshelfProgressItem(BaseModel):
@@ -25,6 +26,10 @@ class AudiobookshelfAithorizationData(BaseModel):
 
 
 def sanitze_server_name(server):
+    override = os.environ.get("SERVER_ENDPOINT")
+    if override:
+        return override.rstrip("/")
+        
     result = server
     if not result.startswith("https://"):
         result = "https://" + result
